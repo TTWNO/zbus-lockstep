@@ -23,7 +23,7 @@ status = "actively-developed"
 
 [dependencies]
 zbus_xml = { version = "5.0.1", git = "https://github.com/TTWNO/zbus/", branch = "direct_propety_access" }
-zvariant = { version = "5.1", git = "https://githuv.com/TTWNO/zbus/", branch = "direct_propety_access" }
+zvariant = { version = "5.1", git = "https://github.com/TTWNO/zbus/", branch = "direct_propety_access" }
 
 [dev-dependencies]
 tempfile = "3"
