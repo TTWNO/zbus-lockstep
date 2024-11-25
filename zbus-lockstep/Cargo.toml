@@ -22,8 +22,8 @@ status = "actively-developed"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-zbus_xml = { version = "5.0.1", path = "../../zbus/zbus_xml/" }
-zvariant = { version = "5.1", path = "../../zbus/zvariant/" }
+zbus_xml = { version = "5.0.1", git = "https://github.com/TTWNO/zbus/", branch = "direct_propety_access" }
+zvariant = { version = "5.1", git = "https://githuv.com/TTWNO/zbus/", branch = "direct_propety_access" }
 
 [dev-dependencies]
 tempfile = "3"
