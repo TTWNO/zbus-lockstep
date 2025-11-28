@@ -124,6 +124,69 @@ pub fn get_signal_body_type(
     Ok(Signature::from_str(&signature).map_err(|_| "Invalid signature")?)
 }
 
+/// Retrieve a signal's body type signature from `DBus` XML.
+///
+/// If you provide an argument name, then the signature of that argument is returned.
+/// If you do not provide an argument name, then the signature of all arguments is returned.    
+///
+/// # Examples
+///
+/// ```rust
+/// # use std::fs::File;
+/// # use std::io::{Seek, SeekFrom, Write};
+/// # use tempfile::tempfile;
+/// use zvariant::{Signature, Type, OwnedObjectPath};
+/// use zbus_lockstep::get_signal_body_type;
+///
+/// let xml = r#"<?xml version="1.0" encoding="UTF-8"?>
+/// <node xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+/// <interface name="org.freedesktop.bolt1.Manager">
+///   <signal name="DeviceAdded">
+///    <arg name="device" type="o"/>
+///  </signal>
+/// </interface>
+/// </node>
+/// "#;
+///
+/// let mut xml_file: File = tempfile().unwrap();   
+/// xml_file.write_all(xml.as_bytes()).unwrap();
+/// xml_file.seek(SeekFrom::Start(0)).unwrap();
+///
+/// #[derive(Debug, PartialEq, Type)]
+/// #[zvariant(signature = "o")]
+/// struct DeviceEvent {
+///    device: OwnedObjectPath,
+/// }
+///
+/// let interface_name = "org.freedesktop.bolt1.Manager";
+/// let member_name = "DeviceAdded";
+///
+/// let signature = get_signal_body_type(xml_file, interface_name, member_name, None).unwrap();
+///
+/// assert_eq!(&signature, DeviceEvent::SIGNATURE);
+/// ```
+pub fn get_signal_name_exists(
+    mut xml: impl Read,
+    interface_name: &str,
+    signal_name: &str,
+) -> Result<()> {
+    let node = Node::from_reader(&mut xml)?;
+
+    let interfaces = node.interfaces();
+    let interface = interfaces
+        .iter()
+        .find(|iface| iface.name() == interface_name)
+        .ok_or(InterfaceNotFound(interface_name.to_owned()))?;
+
+    let signals = interface.signals();
+    let _signal = signals
+        .iter()
+        .find(|signal| signal.name() == signal_name)
+        .ok_or(MemberNotFound(signal_name.to_owned()))?;
+
+    Ok(())
+}
+
 /// Retrieve the signature of a property's type from XML.
 ///
 /// # Examples
@@ -370,7 +433,7 @@ mod test {
     use tempfile::tempfile;
     use zvariant::{OwnedObjectPath, Type};
 
-    use crate::get_signal_body_type;
+    use crate::{get_signal_body_type, get_signal_name_exists};
 
     #[test]
     fn test_get_signature_of_cache_add_accessible() {
@@ -412,7 +475,9 @@ mod test {
         let interface_name = "org.a11y.atspi.Cache";
         let member_name = "AddAccessible";
 
-        let signature = get_signal_body_type(xml_file, interface_name, member_name, None).unwrap();
+        let signature = get_signal_body_type(&mut xml_file, interface_name, member_name, None).unwrap();
+        xml_file.seek(SeekFrom::Start(0)).unwrap();
+        assert_eq!((), get_signal_name_exists(xml_file, interface_name, member_name).unwrap());
         assert_eq!(signature, *CacheItem::SIGNATURE);
     }
 }

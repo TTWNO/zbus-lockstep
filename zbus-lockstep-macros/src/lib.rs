@@ -276,6 +276,11 @@ pub fn validate(args: TokenStream, input: TokenStream) -> TokenStream {
     item_plus_validation_test.into()
 }
 
+#[proc_macro_attribute]
+pub fn validate_proxy(args: TokenStream, input: TokenStream) -> TokenStream {
+
+}
+
 struct ValidateArgs {
     // Optional path to XML file
     xml: Option<PathBuf>,
