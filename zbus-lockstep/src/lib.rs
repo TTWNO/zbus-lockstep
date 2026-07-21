@@ -35,7 +35,7 @@ pub use zbus_xml;
 use zbus_xml::ArgDirection::{In, Out};
 use zvariant::Signature;
 
-type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+type Result<T> = std::result::Result<T, LockstepError>;
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
 pub enum MsgType {
