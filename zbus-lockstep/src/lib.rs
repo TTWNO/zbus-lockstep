@@ -121,7 +121,7 @@ pub fn get_signal_body_type(
                 .collect::<String>()
         }
     };
-    Ok(Signature::from_str(&signature).map_err(|_| "Invalid signature")?)
+    Ok(Signature::from_str(&signature)?)
 }
 
 /// Retrieve the signature of a property's type from XML.
@@ -176,7 +176,7 @@ pub fn get_property_type(
         .ok_or(PropertyNotFound(property_name.to_owned()))?;
 
     let signature = property.ty().to_string();
-    Ok(Signature::from_str(&signature).map_err(|_| "Invalid signature")?)
+    Ok(Signature::from_str(&signature)?)
 }
 
 /// Retrieve the signature of a method's return type from XML.
@@ -260,7 +260,7 @@ pub fn get_method_return_type(
         }
     };
 
-    Ok(Signature::from_str(&signature).map_err(|_| "Invalid signature")?)
+    Ok(Signature::from_str(&signature)?)
 }
 
 /// Retrieve the signature of a method's argument type from XML.
@@ -339,7 +339,7 @@ pub fn get_method_args_type(
     let method = methods
         .iter()
         .find(|method| method.name() == member_name)
-        .ok_or(member_name.to_owned())?;
+        .ok_or(MemberNotFound(member_name.to_owned()))?;
 
     let args = method.args();
 
@@ -356,7 +356,7 @@ pub fn get_method_args_type(
             .collect::<String>()
     };
 
-    Ok(Signature::from_str(&signature).map_err(|_| "Invalid signature")?)
+    Ok(Signature::from_str(&signature)?)
 }
 
 #[cfg(test)]
