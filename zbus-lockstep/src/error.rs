@@ -10,7 +10,16 @@ pub enum LockstepError {
     Variant(zvariant::Error),
 }
 
-impl std::error::Error for LockstepError {}
+impl std::error::Error for LockstepError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            LockstepError::Io(e) => Some(e),
+            LockstepError::Xml(e) => Some(e),
+            LockstepError::Variant(e) => Some(e),
+            _ => None,
+        }
+    }
+}
 
 impl std::fmt::Display for LockstepError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
