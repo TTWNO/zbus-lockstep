@@ -9,6 +9,7 @@ pub enum LockstepError {
     PropertyNotFound(String),
     PathNotFound(PathBuf),
     Env(std::env::VarError),
+    Fmt(std::fmt::Error),
     Io(std::io::Error),
     Xml(zbus_xml::Error),
     Zvariant(zvariant::Error),
@@ -18,6 +19,7 @@ impl std::error::Error for LockstepError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
             LockstepError::Env(e) => Some(e),
+            LockstepError::Fmt(e) => Some(e),
             LockstepError::Io(e) => Some(e),
             LockstepError::Xml(e) => Some(e),
             LockstepError::Zvariant(e) => Some(e),
@@ -39,6 +41,7 @@ impl std::fmt::Display for LockstepError {
                 path.display()
             ),
             LockstepError::Env(e) => write!(f, "Environment variable error: {e}"),
+            LockstepError::Fmt(e) => write!(f, "Formatting error: {e}"),
             LockstepError::Io(e) => write!(f, "IO error: {e}"),
             LockstepError::Xml(e) => write!(f, "XML error: {e}"),
             LockstepError::Zvariant(e) => write!(f, "Zvariant signature error: {e}"),
@@ -74,5 +77,11 @@ impl From<zvariant::signature::Error> for LockstepError {
 impl From<std::env::VarError> for LockstepError {
     fn from(e: std::env::VarError) -> Self {
         LockstepError::Env(e)
+    }
+}
+
+impl From<std::fmt::Error> for LockstepError {
+    fn from(e: std::fmt::Error) -> Self {
+        LockstepError::Fmt(e)
     }
 }
