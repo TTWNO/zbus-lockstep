@@ -4,7 +4,7 @@
 
 use std::{fs, path::PathBuf, str::FromStr};
 
-use crate::Result;
+use crate::{LockstepError, Result};
 
 /// Resolve XML path from either:
 ///
@@ -38,11 +38,7 @@ pub fn resolve_xml_path(xml: Option<&str>) -> Result<PathBuf> {
     }
 
     // Fallback to the default paths:
-
-    let current_dir = PathBuf::from(
-        std::env::var("CARGO_MANIFEST_DIR")
-            .map_err(|e| format!("CARGO_MANIFEST_DIR environment variable is not set: {e}"))?,
-    );
+    let current_dir = PathBuf::from(std::env::var("CARGO_MANIFEST_DIR")?);
     let crate_name = std::env::var("CARGO_PKG_NAME").unwrap_or_else(|_| String::from("unknown"));
 
     let paths_to_try = [
@@ -60,11 +56,7 @@ pub fn resolve_xml_path(xml: Option<&str>) -> Result<PathBuf> {
         }
     }
 
-    Err(format!(
-        "No XML path provided and default XML path not found. Current directory: \"{}\"",
-        current_dir.display()
-    )
-    .into())
+    Err(LockstepError::PathNotFound(current_dir))
 }
 
 /// A generic helper to find the file path and interface name of a member.
