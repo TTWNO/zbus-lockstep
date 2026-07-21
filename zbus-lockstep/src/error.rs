@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 #[non_exhaustive]
 #[derive(Debug)]
 pub enum LockstepError {
@@ -5,17 +7,20 @@ pub enum LockstepError {
     InterfaceNotFound(String),
     MemberNotFound(String),
     PropertyNotFound(String),
+    PathNotFound(PathBuf),
+    Env(std::env::VarError),
     Io(std::io::Error),
     Xml(zbus_xml::Error),
-    Variant(zvariant::Error),
+    Zvariant(zvariant::Error),
 }
 
 impl std::error::Error for LockstepError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
+            LockstepError::Env(e) => Some(e),
             LockstepError::Io(e) => Some(e),
             LockstepError::Xml(e) => Some(e),
-            LockstepError::Variant(e) => Some(e),
+            LockstepError::Zvariant(e) => Some(e),
             _ => None,
         }
     }
@@ -28,9 +33,46 @@ impl std::fmt::Display for LockstepError {
             LockstepError::InterfaceNotFound(name) => write!(f, "Interface \"{name}\" not found."),
             LockstepError::MemberNotFound(name) => write!(f, "Member \"{name}\" not found."),
             LockstepError::PropertyNotFound(name) => write!(f, "Property \"{name}\" not found."),
+            LockstepError::PathNotFound(path) => write!(
+                f,
+                "No XML path provided and default XML path not found. Searched directory: \"{}\"",
+                path.display()
+            ),
+            LockstepError::Env(e) => write!(f, "Environment variable error: {e}"),
             LockstepError::Io(e) => write!(f, "IO error: {e}"),
             LockstepError::Xml(e) => write!(f, "XML error: {e}"),
-            LockstepError::Variant(e) => write!(f, "Variant signature error: {e}"),
+            LockstepError::Zvariant(e) => write!(f, "Zvariant signature error: {e}"),
         }
+    }
+}
+
+impl From<std::io::Error> for LockstepError {
+    fn from(e: std::io::Error) -> Self {
+        LockstepError::Io(e)
+    }
+}
+
+impl From<zbus_xml::Error> for LockstepError {
+    fn from(e: zbus_xml::Error) -> Self {
+        LockstepError::Xml(e)
+    }
+}
+
+impl From<zvariant::Error> for LockstepError {
+    fn from(e: zvariant::Error) -> Self {
+        LockstepError::Zvariant(e)
+    }
+}
+
+impl From<zvariant::signature::Error> for LockstepError {
+    fn from(e: zvariant::signature::Error) -> Self {
+        // Under-the-hood `zvariant` converts this to `zvariant::Error::SignatureParse(e)`
+        LockstepError::Zvariant(zvariant::Error::from(e))
+    }
+}
+
+impl From<std::env::VarError> for LockstepError {
+    fn from(e: std::env::VarError) -> Self {
+        LockstepError::Env(e)
     }
 }
