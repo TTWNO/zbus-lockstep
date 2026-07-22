@@ -226,6 +226,11 @@ pub fn get_property_type(
 /// let signature = get_method_return_type(xml_file, interface_name, member_name, None).unwrap();
 /// assert_eq!(signature, *Role::SIGNATURE);
 /// ```
+///
+/// ## Argument name collisions
+///
+/// If multiple arguments share the same name within the same direction,
+/// the first matching argument's signature is returned.
 pub fn get_method_return_type(
     mut xml: impl Read,
     interface_name: &str,
@@ -251,7 +256,7 @@ pub fn get_method_return_type(
     let signature: Signature = {
         if let Some(needle_arg_name) = arg_name {
             args.iter()
-                .find(|arg| arg.name() == Some(needle_arg_name)) // need Direction check?
+                .find(|arg| arg.name() == Some(needle_arg_name) && arg.direction() == Some(Out))
                 .ok_or(ArgumentNotFound(needle_arg_name.to_string()))?
                 .ty()
                 .inner()
@@ -326,6 +331,10 @@ pub fn get_method_return_type(
 /// let signature = get_method_args_type(xml_file, interface_name, member_name, None).unwrap();
 /// assert_eq!(&signature, Notification::SIGNATURE);
 /// ```
+///
+/// ## Argument name collisions
+/// If multiple arguments share the same name within the same direction,
+/// the first matching argument's signature is returned.
 pub fn get_method_args_type(
     mut xml: impl Read,
     interface_name: &str,
@@ -350,7 +359,9 @@ pub fn get_method_args_type(
 
     let signature: Signature = if let Some(needle_arg_name) = arg_name {
         args.iter()
-            .find(|method_arg| method_arg.name() == Some(needle_arg_name)) // need Direction check?
+            .find(|method_arg| {
+                method_arg.name() == Some(needle_arg_name) && method_arg.direction() == Some(In)
+            })
             .ok_or(ArgumentNotFound(needle_arg_name.to_string()))?
             .ty()
             .inner()
