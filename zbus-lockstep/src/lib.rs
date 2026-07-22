@@ -89,7 +89,7 @@ pub fn get_signal_body_type(
     mut xml: impl Read,
     interface_name: &str,
     member_name: &str,
-    arg: Option<&str>,
+    arg_name: Option<&str>,
 ) -> Result<Signature> {
     let node = zbus_xml::Node::from_reader(&mut xml)?;
 
