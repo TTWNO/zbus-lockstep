@@ -373,7 +373,68 @@ mod test {
     use tempfile::tempfile;
     use zvariant::{OwnedObjectPath, Type};
 
-    use crate::get_signal_body_type;
+    use crate::{get_method_args_type, get_method_return_type, get_signal_body_type};
+
+    // Introspection format provides no guarantees that argument names are unique.
+    // Even same name, same direction could occur but this would be poor D-Bus API design.
+    // zbus-lockstep will filter by appropriate direction and pick the first match.
+    //
+    // https://dbus.freedesktop.org/doc/dbus-specification.html#introspection-format
+    #[test]
+    fn test_overlapping_names_return_type() {
+        let xml = r#"<?xml version="1.0" encoding="UTF-8"?>
+            <node>
+                <interface name="org.example.Calculator">
+                    <method name="Calculate">
+                        <arg name="data" type="s" direction="in"/>
+                        <arg name="data" type="ai" direction="out"/>
+                    </method>
+                </interface>
+            </node>
+        "#;
+
+        let mut xml_file = tempfile().unwrap();
+        xml_file.write_all(xml.as_bytes()).unwrap();
+        xml_file.seek(SeekFrom::Start(0)).unwrap();
+
+        let sig = get_method_return_type(
+            xml_file,
+            "org.example.Calculator",
+            "Calculate",
+            Some("data"),
+        )
+        .unwrap();
+
+        assert_eq!(&sig.to_string(), "ai");
+    }
+
+    #[test]
+    fn test_overlapping_names_args_type_swapped() {
+        let xml = r#"<?xml version="1.0" encoding="UTF-8"?>
+            <node>
+                <interface name="org.example.Calculator">
+                    <method name="Calculate">
+                        <arg name="data" type="ai" direction="out"/>
+                        <arg name="data" type="s" direction="in"/>
+                    </method>
+                </interface>
+            </node>
+        "#;
+
+        let mut xml_file = tempfile().unwrap();
+        xml_file.write_all(xml.as_bytes()).unwrap();
+        xml_file.seek(SeekFrom::Start(0)).unwrap();
+
+        let sig = get_method_args_type(
+            xml_file,
+            "org.example.Calculator",
+            "Calculate",
+            Some("data"),
+        )
+        .unwrap();
+
+        assert_eq!(&sig.to_string(), "s");
+    }
 
     #[test]
     fn test_get_signature_of_cache_add_accessible() {
