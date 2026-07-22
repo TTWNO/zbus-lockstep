@@ -23,7 +23,7 @@
 mod error;
 mod macros;
 
-use std::{io::Read, str::FromStr};
+use std::{fmt::Write, io::Read, str::FromStr};
 
 use LockstepError::{ArgumentNotFound, InterfaceNotFound, MemberNotFound, PropertyNotFound};
 pub use error::LockstepError;
@@ -105,23 +105,26 @@ pub fn get_signal_body_type(
         .find(|signal| signal.name() == member_name)
         .ok_or(MemberNotFound(member_name.to_owned()))?;
 
-    let signature = {
-        if let Some(arg_name) = arg {
-            let args = signal.args();
-            let arg = args
-                .iter()
-                .find(|arg| arg.name() == Some(arg_name))
-                .ok_or(ArgumentNotFound(arg_name.to_owned()))?;
-            arg.ty().to_string()
-        } else {
+    let signature: Signature = {
+        if let Some(needle_arg_name) = arg_name {
             signal
                 .args()
                 .iter()
-                .map(|arg| arg.ty().to_string())
-                .collect::<String>()
+                .find(|signal_arg| signal_arg.name() == Some(needle_arg_name))
+                .ok_or(ArgumentNotFound(needle_arg_name.to_owned()))?
+                .ty()
+                .inner()
+                .clone()
+        } else {
+            let mut combined_sig = String::new();
+            for signal_arg in signal.args() {
+                write!(combined_sig, "{}", signal_arg.ty().inner())?;
+            }
+            Signature::from_str(&combined_sig)?
         }
     };
-    Ok(Signature::from_str(&signature)?)
+
+    Ok(signature)
 }
 
 /// Retrieve the signature of a property's type from XML.
@@ -245,22 +248,24 @@ pub fn get_method_return_type(
 
     let args = method.args();
 
-    let signature = {
-        if let Some(known_arg_name) = arg_name {
+    let signature: Signature = {
+        if let Some(needle_arg_name) = arg_name {
             args.iter()
-                .find(|arg| arg.name() == Some(known_arg_name))
-                .ok_or(ArgumentNotFound(known_arg_name.to_string()))?
+                .find(|arg| arg.name() == Some(needle_arg_name)) // need Direction check?
+                .ok_or(ArgumentNotFound(needle_arg_name.to_string()))?
                 .ty()
-                .to_string()
+                .inner()
+                .clone()
         } else {
-            args.iter()
-                .filter(|arg| arg.direction() == Some(Out))
-                .map(|arg| arg.ty().to_string())
-                .collect::<String>()
+            let mut combined_sig = String::new();
+            for arg in args.iter().filter(|arg| arg.direction() == Some(Out)) {
+                write!(combined_sig, "{}", arg.ty().inner())?;
+            }
+            Signature::from_str(&combined_sig)?
         }
     };
 
-    Ok(Signature::from_str(&signature)?)
+    Ok(signature)
 }
 
 /// Retrieve the signature of a method's argument type from XML.
@@ -343,20 +348,22 @@ pub fn get_method_args_type(
 
     let args = method.args();
 
-    let signature = if let Some(known_arg_name) = arg_name {
+    let signature: Signature = if let Some(needle_arg_name) = arg_name {
         args.iter()
-            .find(|arg| arg.name() == Some(known_arg_name))
-            .ok_or(ArgumentNotFound(known_arg_name.to_string()))?
+            .find(|method_arg| method_arg.name() == Some(needle_arg_name)) // need Direction check?
+            .ok_or(ArgumentNotFound(needle_arg_name.to_string()))?
             .ty()
-            .to_string()
+            .inner()
+            .clone()
     } else {
-        args.iter()
-            .filter(|arg| arg.direction() == Some(In))
-            .map(|arg| arg.ty().to_string())
-            .collect::<String>()
+        let mut combined_sig = String::new();
+        for arg in args.iter().filter(|arg| arg.direction() == Some(In)) {
+            write!(combined_sig, "{}", arg.ty().inner())?;
+        }
+        Signature::from_str(&combined_sig)?
     };
 
-    Ok(Signature::from_str(&signature)?)
+    Ok(signature)
 }
 
 #[cfg(test)]
