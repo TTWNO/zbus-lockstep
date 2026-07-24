@@ -85,3 +85,16 @@ impl From<std::fmt::Error> for LockstepError {
         LockstepError::Fmt(e)
     }
 }
+
+// `LockstepError` wraps upstream errors (e.g. `io::Error`) that are `!UnwindSafe`
+// because they may carry a `Box<dyn Error>`, which the compiler conservatively
+// assumes could hide interior mutability. This propagates and strips the auto
+// traits from `LockstepError`.
+//
+// These impls are sound: `LockstepError` is passive, owned error data with no
+// interior mutability (`Cell`/`RefCell`) and no handles to shared mutable state.
+// It is only ever read (e.g. via `Display`), never mutated, so a panic can never
+// leave it holding a broken invariant that could be observed across a
+// `catch_unwind` boundary.
+impl std::panic::UnwindSafe for LockstepError {}
+impl std::panic::RefUnwindSafe for LockstepError {}
