@@ -4,6 +4,10 @@ members = [
     "zbus-lockstep",
     "zbus-lockstep-macros",
 ]
+default-members = [
+    "zbus-lockstep",
+    "zbus-lockstep-macros",
+]
 resolver = "3"
 
 [workspace.package]
