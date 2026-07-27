@@ -18,6 +18,9 @@ When a release is triggered, the tools automatically:
 Before releasing for the first time, ensure you have the necessary tools installed on your machine:
 
 ```sh
+# Install cargo-semver-checks
+cargo install cargo-semver-checks
+
 # Install cargo-release
 cargo install cargo-release
 
@@ -54,7 +57,7 @@ cargo test
 
 Run `cargo senver-checks` 
 ```sh
-cargo semver-checks --baseline-rev v0.6.0
+cargo semver-checks [--baseline-rev v0.6.0]
 ```
 
 Not all semver violations will be detected by `cargo-semver-checks` from the [semver-checks FAQ](https://github.com/obi1kenobi/cargo-semver-checks#will-cargo-semver-checks-catch-every-semver-violation):
