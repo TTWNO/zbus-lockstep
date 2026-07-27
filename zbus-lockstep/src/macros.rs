@@ -156,7 +156,7 @@ macro_rules! find_definition_in_dbus_xml {
 /// This macro will take a method member name and return the signature of the
 /// return type.
 ///
-/// Essentially a wrapper around [`zbus_lockstep::get_method_return_type`],
+/// Essentially a wrapper around [`crate::get_method_return_type`],
 /// but this macro tries to do its job with less arguments.
 ///
 /// It will search in the XML specification of the method for the return type
@@ -263,7 +263,7 @@ macro_rules! method_return_signature {
 
 /// Retrieve the signature of a method's arguments.
 ///
-/// Essentially a wrapper around [`zbus_lockstep::get_method_args_type`],
+/// Essentially a wrapper around [`crate::get_method_args_type`],
 /// but this macro tries to do its job with less arguments.
 ///
 /// This macro will take a method member name and return the signature of the
@@ -370,7 +370,7 @@ macro_rules! method_args_signature {
 
 /// Retrieve the signature of a signal's body type.
 ///
-/// Essentially a wrapper around [`zbus_lockstep::get_signal_body_type`],
+/// Essentially a wrapper around [`crate::get_signal_body_type`],
 /// but this macro tries to find it with less arguments.
 ///
 /// This macro will take a signal member name and return the signature of the
@@ -475,7 +475,7 @@ macro_rules! signal_body_type_signature {
 
 /// Retrieve the signature of a property's type.
 ///
-/// Essentially a wrapper around [`zbus_lockstep::get_property_type`],
+/// Essentially a wrapper around [`crate::get_property_type`],
 /// but this macro tries to do with less arguments.
 ///
 /// This macro will take a property name and return the signature of the
