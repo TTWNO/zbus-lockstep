@@ -52,6 +52,18 @@ git pull origin main
 cargo test
 ```
 
+Run `cargo senver-checks` 
+```sh
+cargo semver-checks --baseline-rev v0.6.0
+```
+
+Not all semver violations will be detected by `cargo-semver-checks` from the [semver-checks FAQ](https://github.com/obi1kenobi/cargo-semver-checks#will-cargo-semver-checks-catch-every-semver-violation):
+
+Here are some example areas where `cargo-semver-checks` currently will not catch semver violations:
+ - breaking type changes, for example in a field type or function parameter
+ - breaking changes in generics or lifetimes
+
+
 ### Step 2: The Dry Run (Safety First! 🛡️)
 Always simulate the release first to ensure that there are no compilation issues, test failures, or version-sync discrepancies. This step will **not** change any files or push anything.
 
